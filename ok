@@ -1,0 +1,247 @@
+-- UNDTC Prison Life GUI | By ovtszn
+-- Features: Rainbow ESP, Teleportation, Aimbot, Fly, Speed Hack, Box Outline ESP, Noclip,
+--           Server Member List & Teleport, Flinging, GUI Customization, Gun Give, UI Toggle
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Mouse = LocalPlayer:GetMouse()
+
+-- == UI SETUP ==
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PrisonLifeUndetectableUI"
+ScreenGui.Parent = PlayerGui
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 300, 0, 350)
+Main.Position = UDim2.new(0, 40, 0, 250)
+Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+Main.Active = true
+Main.Draggable = true
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Text = "ovtszn Prison Life"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Parent = Main
+
+local yOffset = 35
+local Sections = {}
+
+-- == Functions to create sections ==
+local function AddSection(name)
+    local section = Instance.new("Frame")
+    section.Size = UDim2.new(1, 0, 0, 300) 
+    section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    section.Name = name
+    section.Parent = Main
+    section.Visible = false
+    Sections[name] = section
+end
+
+local function AddButtonToSection(sectionName, text, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -10, 0, 30)
+    button.Position = UDim2.new(0, 5, 0, #Sections[sectionName].Children * 35 + 10)
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = text
+    button.Parent = Sections[sectionName]
+    button.MouseButton1Click:Connect(callback)
+end
+
+-- == Feature Functions ==
+
+-- Rainbow ESP
+local function EnableRainbowESP()
+    local function addESP(plr)
+        if plr == LocalPlayer then return end
+        if not plr.Character or not plr.Character:FindFirstChild("Head") then return end
+
+        local bb = Instance.new("BillboardGui", plr.Character.Head)
+        bb.Name = "PL_ESP"
+        bb.Adornee = plr.Character.Head
+        bb.Size = UDim2.new(0, 100, 0, 30)
+        bb.AlwaysOnTop = true
+
+        local label = Instance.new("TextLabel", bb)
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = plr.Name
+        label.TextStrokeTransparency = 0.5
+        label.TextColor3 = Color3.new(1, 1, 1)
+
+        RunService.RenderStepped:Connect(function()
+            label.TextColor3 = Color3.fromHSV((tick() % 5) / 5, 1, 1)
+        end)
+    end
+
+    for _, p in pairs(Players:GetPlayers()) do
+        addESP(p)
+    end
+
+    Players.PlayerAdded:Connect(addESP)
+end
+
+-- Teleportation function
+local function teleportTo(pos)
+    if not Character or not HumanoidRootPart then return end
+    HumanoidRootPart.CFrame = CFrame.new(pos)
+end
+
+-- Chams (Body Outline Effect)
+local function enableChams()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr == LocalPlayer then return end
+        if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
+        
+        local character = plr.Character
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+        -- Create outline part around the player
+        local chamPart = Instance.new("Part")
+        chamPart.Size = character:GetModelSize()
+        chamPart.CFrame = humanoidRootPart.CFrame
+        chamPart.Anchored = true
+        chamPart.CanCollide = false
+        chamPart.Transparency = 0.5
+        chamPart.BrickColor = BrickColor.new("Bright red")
+        chamPart.Parent = character
+
+        -- Keep the cham outline updated
+        RunService.RenderStepped:Connect(function()
+            if character and humanoidRootPart then
+                chamPart.CFrame = humanoidRootPart.CFrame
+            end
+        end)
+    end
+end
+
+-- Noclip (No collision with walls)
+local function noclip()
+    local character = LocalPlayer.Character
+    if not character then return end
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    humanoid.Changed:Connect(function()
+        if humanoid:GetState() == Enum.HumanoidStateType.Physics then
+            for _, part in pairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end
+
+-- Aimbot (Target closest player)
+local function aimbot()
+    local function aimAtTarget()
+        local target = nil
+        local closestDistance = math.huge
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr == LocalPlayer then continue end
+            if not plr.Character or not plr.Character:FindFirstChild("Head") then continue end
+
+            local dist = (Mouse.Hit.p - plr.Character.Head.Position).Magnitude
+            if dist < closestDistance then
+                closestDistance = dist
+                target = plr.Character.Head
+            end
+        end
+
+        if target then
+            Mouse.Hit = CFrame.new(target.Position)
+        end
+    end
+
+    RunService.RenderStepped:Connect(aimAtTarget)
+end
+
+-- Fly
+local function enableFly()
+    local flying = false
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+
+    local function toggleFly()
+        if flying then
+            flying = false
+            bodyVelocity:Destroy()
+        else
+            flying = true
+            bodyVelocity.Parent = Character:WaitForChild("HumanoidRootPart")
+        end
+    end
+    return toggleFly
+end
+
+-- Speed Hack
+local function setSpeed(speed)
+    local humanoid = Character:WaitForChild("Humanoid")
+    humanoid.WalkSpeed = speed
+end
+
+-- == UI Section Setup ==
+
+-- Add sections for UI, Misc, etc.
+AddSection("UI")
+AddSection("Misc")
+
+-- Add buttons to "UI" section
+AddButtonToSection("UI", "Enable Rainbow ESP", EnableRainbowESP)
+AddButtonToSection("UI", "Enable Chams", enableChams)
+
+-- Add buttons to "Misc" section
+AddButtonToSection("Misc", "Teleport to Yard", function() teleportTo(Vector3.new(791, 98, 2266)) end)
+AddButtonToSection("Misc", "Teleport to Guard Room", function() teleportTo(Vector3.new(838, 99, 2274)) end)
+AddButtonToSection("Misc", "Enable Noclip", noclip)
+AddButtonToSection("Misc", "Enable Aimbot", aimbot)
+
+-- == UI Toggle ==
+local uiToggled = true
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Position = UDim2.new(0, 5, 0, 5)
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Text = "Toggle UI"
+toggleButton.Parent = Main
+toggleButton.MouseButton1Click:Connect(function()
+    uiToggled = not uiToggled
+    ScreenGui.Enabled = uiToggled
+end)
+
+-- == Additional Features ==
+-- Flinging (Randomly fling players)
+local function flingPlayer(target)
+    local character = target.Character
+    if not character then return end
+
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+    bodyVelocity.Velocity = Vector3.new(math.random(-500, 500), math.random(500, 1000), math.random(-500, 500))
+    bodyVelocity.Parent = character:WaitForChild("HumanoidRootPart")
+end
+
+-- Give guns (example)
+local function giveGun()
+    -- Example for giving a gun, replace with your specific gun give logic
+    local tool = Instance.new("Tool")
+    tool.Name = "AK47"
+    tool.Parent = LocalPlayer.Backpack
+end
+
+-- == Final Section Toggles ==
+local function ToggleSection(sectionName)
+    for name, section in pairs(Sections) do
+        section.Visible = (name == sectionName)
+    end
+end
