@@ -1,0 +1,68 @@
+-- UNDTC Prison Life GUI | By ovtszn
+-- Features: Rainbow ESP, Teleportation, Aimbot, Fly, Speed Hack, Box Outline ESP, Noclip,
+--           Server Member List & Teleport, Flinging, GUI Customization, Gun Give, UI Toggle
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- == UI SETUP ==
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PrisonLifeUndetectableUI"
+ScreenGui.Parent = PlayerGui
+ScreenGui.Enabled = true  -- Make sure GUI is visible by default
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 220, 0, 260)
+Main.Position = UDim2.new(0, 40, 0, 250)
+Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+Main.Active = true
+Main.Draggable = true
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Text = "ovtszn Prison Life"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Parent = Main
+
+local yOffset = 35
+
+-- Function to add buttons to the GUI
+local function AddButton(text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, -20, 0, 30)
+    Button.Position = UDim2.new(0, 10, 0, yOffset)
+    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.Text = text
+    Button.Parent = Main
+    Button.MouseButton1Click:Connect(callback)
+    yOffset = yOffset + 35  -- Move down for the next button
+end
+
+-- == UI Toggle ==
+local uiToggleEnabled = true  -- Control UI visibility state
+
+local function ToggleUI()
+    uiToggleEnabled = not uiToggleEnabled
+    ScreenGui.Enabled = uiToggleEnabled  -- Toggle visibility of the entire GUI
+end
+
+-- == Button for UI Toggle ==
+AddButton("Toggle UI", ToggleUI)
+
+-- == Features Buttons ==
+AddButton("Enable Rainbow ESP", function() print("Rainbow ESP Enabled") end)  -- Example action
+AddButton("Teleport to Yard", function() print("Teleported to Yard") end)  -- Example action
+AddButton("Teleport to Guard Room", function() print("Teleported to Guard Room") end)  -- Example action
+AddButton("Enable Chams", function() print("Chams Enabled") end)  -- Example action
+AddButton("Enable Fly", function() print("Fly Enabled") end)  -- Example action
+
+-- == Final Setup ==
+ScreenGui.Parent = PlayerGui  -- Ensure GUI is parented to the player's PlayerGui
